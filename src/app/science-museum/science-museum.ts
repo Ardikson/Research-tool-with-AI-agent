@@ -473,4 +473,19 @@ resetAllFilters() {
   openScientist(s: Scientist) { this.activeScientist.set(s); }
   closeScientist() { this.activeScientist.set(null); }
   goToMain() { this.router.navigate(['/']); }
+
+  getCategoryBackground(category: string): string {
+    const backgrounds: { [key: string]: string } = {
+      'Все науки': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200',
+      'Физика': 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200',
+      'Математика': 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1200',
+      'Химия': 'https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=1200',
+      'Биология': 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=1200',
+      'Информатика': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200',
+      'Медицина': 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=1200'
+    };
+
+    return backgrounds[category] || backgrounds['Все науки'];
+  }
+  
 }
