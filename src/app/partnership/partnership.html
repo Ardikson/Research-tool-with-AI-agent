@@ -1,0 +1,82 @@
+<div class="partnership-container">
+  
+  <section class="partnership-hero">
+    <div class="hero-content">
+      <span class="hero-badge">Экосистема Lesson Study</span>
+      <h1 class="hero-title">Мост между школой и университетом</h1>
+      <p class="hero-subtitle">
+        Мы строим прочную синергию между академической экспертизой высшего образования и практическим опытом современной школы. 
+        Наше партнерство направлено на непрерывное совершенствование педагогических практик, совместное исследование уроков 
+        и подготовку поколения учителей-исследователей, готовых отвечать вызовам будущего.
+      </p>
+    </div>
+  </section>
+
+  <main class="partnership-main">
+    <div class="section-header">
+      <h2>Школы-партнеры в г. Алматы</h2>
+      <p>Нажмите на карточку учебного заведения, чтобы просмотреть контактные данные и информацию о руководстве.</p>
+    </div>
+
+    <div class="schools-grid">
+      @for (school of schools(); track school.id) {
+        <div class="school-card" (click)="openSchoolDetails(school)">
+          <div class="card-accent-line"></div>
+          <div class="school-card-body">
+            <span class="school-type">{{ school.type }}</span>
+            <h3 class="school-name">{{ school.name }}</h3>
+            <p class="school-district">📍 {{ school.district }} район</p>
+            <div class="card-footer">
+              <span class="more-info-btn">Подробнее</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+
+  @if (selectedSchool()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-window animate-scale-in" (click)="$event.stopPropagation()">
+        
+        <button class="modal-close-btn" (click)="closeModal()">&times;</button>
+        
+        <div class="modal-header">
+          <span class="modal-badge">{{ selectedSchool()?.type }}</span>
+          <h3>{{ selectedSchool()?.name }}</h3>
+        </div>
+        
+        <div class="modal-body">
+          <div class="info-row">
+            <div class="info-icon">📍</div>
+            <div class="info-text">
+              <label>Локация / Адрес</label>
+              <p>{{ selectedSchool()?.location }}</p>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-icon">👨‍💼</div>
+            <div class="info-text">
+              <label>ФИО Директора</label>
+              <p>{{ selectedSchool()?.director }}</p>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-icon">📞</div>
+            <div class="info-text">
+              <label>Контактный номер</label>
+              <p class="phone-link">{{ selectedSchool()?.phone }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="ls-btn ls-btn-primary" (click)="closeModal()">Закрыть окно</button>
+        </div>
+        
+      </div>
+    </div>
+  }
+</div>

@@ -1,5 +1,6 @@
 <div class="main-container">
   <div class="left-half-red"></div>
+  <img src="/teachers.png" alt="Мектептен Ғылымға" class="left-side-banner">
   <div class="right-half-black"></div>
 
   <div class="content-overlay">
@@ -17,10 +18,26 @@
           <div class="fade-in-content">
             <h2 class="menu-title">MENU</h2>
             <div class="tiles-grid">
-              <div class="tile"><div class="tile-overlay"><span class="tile-text">Раздел 1</span></div></div>
-              <div class="tile"><div class="tile-overlay"><span class="tile-text">Раздел 2</span></div></div>
-              <div class="tile"><div class="tile-overlay"><span class="tile-text">Раздел 3</span></div></div>
-              <div class="tile"><div class="tile-overlay"><span class="tile-text">Раздел 4</span></div></div>
+              <div class="tile" (click)="goToNews()" style="cursor: pointer; background-image: url('/news.jpg');">
+              <div class="tile-overlay">
+              <span class="tile-text">Новости</span>
+              </div>
+            </div>
+              <div class="tile" (click)="goToProject()" style="cursor: pointer; background-image: url('/project.jpg');">
+              <div class="tile-overlay">
+              <span class="tile-text">О проекте</span>
+              </div>
+            </div>
+              <div class="tile" (click)="goToPartnership()" style="cursor: pointer; background-image: url('/project.jpg');">
+              <div class="tile-overlay">
+    <span class="tile-text">Партнерство</span>
+              </div>
+              </div>
+              <div class="tile" (click)="goToForum()" style="cursor: pointer; background-image: url('/news.jpg');">
+              <div class="tile-overlay">
+    <span class="tile-text">Форум</span>
+             </div>
+          </div>
             </div>
             <div class="auth-buttons">
               <button class="btn btn-login" (click)="changeScreen('login')">Войти</button>
@@ -99,9 +116,12 @@
 
     </div>
 
-    <div class="scientist-portrait">
-      <img src="/Sloane.png" alt="Scientist">
-    </div>
+<div class="scientist-portrait" (click)="goToScienceMuseum()" style="cursor: pointer;">
+  <img src="/Sloane.png" alt="Scientist">
+  <p class="scientist-quote">
+    Science has the power to shape the future by turning knowledge into progress and discovery into opportunity. Kanysh Satpayev, the founder of Kazakhstan's geological science and the first President of the Academy of Sciences of the Kazakh SSR, embodied this vision through his groundbreaking research, leadership...
+  </p>
+</div>
 
   </div>
 </div>

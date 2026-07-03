@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600;700&display=swap');
+
+:host {
+  --gold: #c5a059;
+  --dark: #1a1a1a;
+  --bg: #fcfaf7;
+  --white: #ffffff;
+  --text-muted: #666;
+  
+  display: block;
+  background-color: var(--bg);
+}
+
+.museum-page {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--dark);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+/* NAV */
+.museum-nav {
+  height: 70px;
+  background: var(--white);
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+}
+
+.nav-flex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-weight: 700;
+  color: var(--gold);
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.nav-links span {
+  margin-left: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.nav-links span.active { color: var(--dark); font-weight: 600; }
+
+/* HERO */
+.museum-hero {
+  padding: 80px 0;
+  text-align: center;
+  background: white;
+}
+
+.museum-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  margin: 0 0 15px 0;
+}
+
+.museum-subtitle {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin-bottom: 40px;
+}
+
+.search-box {
+  display: flex;
+  max-width: 500px;
+  margin: 0 auto;
+  border-bottom: 2px solid var(--gold);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  padding: 15px;
+  font-size: 16px;
+  outline: none;
+  background: transparent;
+}
+
+.search-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* TABS */
+.filters-section {
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.categories-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* GRID */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 40px;
+  padding: 60px 20px;
+}
+
+.exhibit-card {
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.exhibit-card:hover { opacity: 0.8; }
+
+.image-box {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #eee;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.image-box img { width: 100%; height: 100%; object-fit: cover; }
+
+.exhibit-field { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
+.exhibit-name { font-family: 'Playfair Display', serif; font-size: 20px; margin: 0 0 5px 0; }
+.exhibit-years { font-size: 13px; color: var(--text-muted); }
+
+/* MODAL */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--white);
+  width: 95%;
+  max-width: 1100px;
+  height: 90vh;
+  position: relative;
+  display: flex;
+  overflow: hidden;
+}
+
+.close-modal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.modal-layout { display: grid; grid-template-columns: 350px 1fr; width: 100%; }
+
+.modal-sidebar {
+  background: #f9f9f9;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.portrait-container {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #ddd;
+  margin-bottom: 30px;
+  border: 1px solid #ddd;
+}
+.portrait-container img { width: 100%; height: 100%; object-fit: cover; }
+
+.quote-block { text-align: center; font-style: italic; color: #555; position: relative; }
+.quote-icon { font-family: serif; font-size: 50px; color: var(--gold); line-height: 1; display: block; }
+
+.modal-main { padding: 50px; display: flex; flex-direction: column; }
+.field-label { color: var(--gold); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.modal-header h2 { font-family: 'Playfair Display', serif; font-size: 36px; margin: 10px 0; }
+.years-label { color: #888; font-size: 15px; margin-bottom: 30px; }
+
+.modal-scroll-body { overflow-y: auto; padding-right: 20px; }
+.info-section { margin-bottom: 40px; }
+.info-section h4 { text-transform: uppercase; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; letter-spacing: 1px; }
+.info-section p { line-height: 1.7; font-size: 15px; color: #444; }
+
+.research-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.research-table th { text-align: left; background: #f5f5f5; padding: 12px; }
+.research-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+.link-btn { color: var(--gold); text-decoration: none; font-weight: 600; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }

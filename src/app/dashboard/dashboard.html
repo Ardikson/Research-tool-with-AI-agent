@@ -253,20 +253,57 @@
     .research-date-block { width: 100%; justify-content: flex-start; padding-left: 40px; }
     .divider-pipe { display: none; }
   }
+
+  .back-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* Расстояние между домиком и текстом */
+  background-color: #ffffff;
+  color: #334155; /* Приятный темно-серый цвет */
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 0px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Эффект при наведении */
+.back-home-btn:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+/* Эффект при клике (слегка утапливается) */
+.back-home-btn:active {
+  transform: scale(0.97);
+}
+
+/* Фиксируем размер иконки внутри кнопки */
+.back-home-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 </style>
+
+<button class="back-home-btn" (click)="goBackToMainMenu()">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+  </svg>
+  <span>Главная</span>
+</button>
 
 <div class="dashboard-container">
   
-  <button class="menu-burger-btn" (click)="toggleSidebar()">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
 
   <div class="main-card">
     
     <div style="text-align: center; margin-bottom: 35px;">
-      <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #000; letter-spacing: -0.5px;">Привет, User !</h1>
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #000; letter-spacing: -0.5px;">Привет, {{ userName() }}</h1>
       <p style="margin: 8px 0 0 0; color: #777; font-size: 16px; font-weight: 600;">С чего начнем ?</p>
     </div>
 
@@ -310,7 +347,7 @@
                 @if (activeMenuId() === item.id) {
                   <div class="context-dropdown" (click)="$event.stopPropagation()">
                     <button class="btn-context-delete" (click)="deleteDocument($event, item.id)">
-                      🗑️ Удалить
+                       Удалить
                     </button>
                   </div>
                 }
@@ -323,19 +360,6 @@
     </div>
   </div>
 
-  @if (isSidebarOpen()) {
-    <div class="sidebar-panel">
-      <button (click)="toggleSidebar()" style="background: transparent; border: none; cursor: pointer; display: flex; gap: 4px; align-self: flex-end; margin-bottom: 20px; padding: 10px;">
-        <span style="background: #999; width: 5px; height: 24px; border-radius: 2px;"></span>
-        <span style="background: #999; width: 5px; height: 24px; border-radius: 2px;"></span>
-        <span style="background: #999; width: 5px; height: 24px; border-radius: 2px;"></span>
-      </button>
-      <div (click)="selectAgent('Research Coordinator')" style="cursor: pointer; padding: 15px 0; border-bottom: 2px solid #ccc;"><h2 style="margin: 0; font-size: 22px; font-weight: 800;" [style.color]="activeAgent() === 'Research Coordinator' ? '#ff6b5b' : '#000'">Research Coordinator</h2></div>
-      <div (click)="selectAgent('Academic Advisor')" style="cursor: pointer; padding: 15px 0; border-bottom: 2px solid #ccc;"><h2 style="margin: 0; font-size: 22px; font-weight: 800;" [style.color]="activeAgent() === 'Academic Advisor' ? '#ff6b5b' : '#000'">Academic Advisor</h2></div>
-      <div (click)="selectAgent('Document Redactor')" style="cursor: pointer; padding: 15px 0; border-bottom: 2px solid #ccc;"><h2 style="margin: 0; font-size: 22px; font-weight: bold;" [style.color]="activeAgent() === 'Document Redactor' ? '#ff6b5b' : '#000'">Document Redactor</h2></div>
-      <div (click)="selectAgent('Forum')" style="cursor: pointer; padding: 15px 0; border-bottom: 2px solid #ccc;"><h2 style="margin: 0; font-size: 22px; font-weight: 800;" [style.color]="activeAgent() === 'Forum' ? '#ff6b5b' : '#000'">Forum</h2></div>
-    </div>
-  }
 
   @if (isModalOpen()) {
     <div class="modal-overlay" (click)="closeCreateModal()">

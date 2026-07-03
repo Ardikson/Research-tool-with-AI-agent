@@ -24,6 +24,8 @@ export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  userName = signal<string>('Пользователь');
+
   isSidebarOpen = signal<boolean>(false);
   activeAgent = signal<string | null>(null);
   isModalOpen = signal<boolean>(false);
@@ -36,17 +38,29 @@ export class DashboardComponent implements OnInit {
   // ДОБАВЛЕНО: Сигнал для хранения ID исследования, у которого сейчас открыто меню
   activeMenuId = signal<string | null>(null);
 
-  ngOnInit() {
+ngOnInit() {
     const auth = getAuth();
-    
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // 2. Напрямую записываем имя в сигнал при авторизации
+        if (user.displayName) {
+          this.userName.set(user.displayName);
+        } else if (user.email) {
+          this.userName.set(user.email.split('@')[0]);
+        } else {
+          this.userName.set('Пользователь');
+        }
+
         await this.loadUserResearches();
       } else {
         this.router.navigate(['/login']);
       }
     });
   }
+
+  goBackToMainMenu() {
+  this.router.navigate(['/login']); // Или '/main', в зависимости от твоего роутинга
+}
 
   async loadUserResearches() {
     try {

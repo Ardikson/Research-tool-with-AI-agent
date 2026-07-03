@@ -24,6 +24,27 @@ body {
 .left-half-red {
   flex: 55;
   background-color: #ff5741;
+  position: relative;
+}
+
+.left-side-banner {
+  position: absolute;
+  
+  /* Центрируем по вертикали */
+  top: 50%;
+  transform: translateY(-50%);
+  
+  /* Прижимаем к левому краю и даем отступ вправо */
+  left: 50%; 
+  right: auto; /* Сбрасываем правое позиционирование */
+  
+  /* Задаем ширину, чтобы она занимала красивую часть красного фона */
+  width: 42%;        
+  max-width: 600px;
+  
+  height: auto;      
+  object-fit: contain;
+  pointer-events: none; 
 }
 
 .right-half-black {
@@ -197,16 +218,37 @@ body {
 .scientist-portrait {
   position: absolute;
   top: 50%;
-  right: 5%; /* Фиксированный отступ от правого края вместо огромных процентов */
+  right: 5%;
   transform: translateY(-50%);
   z-index: 5;
+  
+  /* Добавляем flex, чтобы выстроить картинку и текст вертикально */
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  gap: 20px; /* Расстояние между картиной и цитатой */
+}
+
+.scientist-quote {
+  color: rgba(255, 255, 255, 0.85); /* Мягкий белый цвет */
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+  
+  /* УВЕЛИЧИВАЕМ ШИРИНУ: */
+  width: 140%; /* Позволяем тексту стать шире самого портрета */
+  max-width: 600px; /* Ставим новый, просторный лимит */
+  
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .scientist-portrait img {
   display: block;
   width: 180px; /* Задаем адекватный базовый размер для десктопа */
   height: auto;
-  border: 4px solid gold; /* Рамка картины */
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   transition: transform 0.3s ease;
 }
@@ -224,6 +266,10 @@ body {
   .scientist-portrait {
     display: none; 
   }
+    .left-side-banner {
+    display: none;
+  }
+
 }
 
 @media (max-width: 768px) {
@@ -376,4 +422,88 @@ body {
   font-weight: bold;
   margin: 0 0 15px 0;
   text-align: center;
+}
+
+@media (min-width: 1440px) {
+  .left-side-banner {
+    /* Сбрасываем центрирование по top, если нужно выровнять по-другому */
+    top: 50%;
+    transform: translateY(-50%);
+
+    /* Идеальный отступ слева для экранов 1440px */
+    left: -3%; 
+    right: auto;
+
+    /* Делаем картинку заметно крупнее, так как места на экране много */
+    width: 65%;        
+    max-width: 600px; /* Увеличили лимит, чтобы на 1440px+ она раскрылась */
+  }
+
+  .scientist-portrait img {
+    width: 230px; /* Сделали крупнее и заметнее */
+    border-width: 0px; /* Чуть утолщаем золотую рамку для солидности */
+  }
+
+}
+
+/* =======================================================
+   ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ УЛЬТРАШИРОКИХ ЭКРАНОВ (ОТ 2560px)
+   ======================================================= */
+@media (min-width: 2560px) {
+  .left-side-banner {
+    /* Оставляем идеальное вертикальное центрирование */
+    top: 50%;
+    transform: translateY(-50%);
+
+    /* Немного смещаем к центру красной половины для баланса */
+    left: 6%; 
+    right: auto;
+
+    /* Даем картинке свободу расти дальше */
+    width: 65%;        
+    max-width: 800px; /* Существенно подняли лимит для экранов высокой четкости */
+  }
+
+  .scientist-portrait img {
+    width: 300px; /* На ультрашироком мониторе картина будет выглядеть как в настоящей галерее */
+    border-width: 0px; /* Пропорционально увеличиваем рамку */
+  }
+  
+  /* Слегка отодвигаем от самого края, чтобы он не прилипал к границе экрана */
+  .scientist-portrait {
+    right: 13%;
+  }
+
+}
+
+
+@media (min-width: 1440px) {
+  /* ... твои старые стили для картинок ... */
+
+  .scientist-portrait img {
+    width: 200px;
+    border-width: 5px;
+  }
+  
+  /* Увеличиваем цитату на 1440px */
+  .scientist-quote {
+    font-size: 16px;
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 2560px) {
+  /* ... твои старые стили для картинок ... */
+
+  .scientist-portrait img {
+    width: 250px;
+    border-width: 7px;
+  }
+  
+  /* Крупный читаемый текст на 2K/4K экранах */
+  .scientist-quote {
+    font-size: 24px;
+    max-width: 550px;
+    gap: 35px;
+  }
 }

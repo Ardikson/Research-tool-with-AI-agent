@@ -24,6 +24,26 @@ export class Login {
   errorMessage = signal('');
   successMessage = signal('');
 
+  goToNews() {
+    this.router.navigate(['/news']);
+  }
+
+  goToProject() {
+    this.router.navigate(['/about']);
+  }
+
+  goToPartnership() {
+  this.router.navigate(['/partnership']);
+}
+
+  goToScienceMuseum() {
+    this.router.navigate(['/science-museum']);
+  }
+
+  goToForum() {
+    this.router.navigate(['/forum']);
+  }
+
   // Навигация внутри компонента
   changeScreen(screen: 'menu' | 'login' | 'register') {
     this.currentScreen.set(screen);

@@ -1,0 +1,110 @@
+<div class="forum-container">
+  
+  <section class="forum-hero">
+    <div class="hero-content">
+      <span class="hero-badge">Сообщество Практиков</span>
+      <h1 class="hero-title">Исследовательский Форум</h1>
+      <p class="hero-subtitle">
+        Делитесь живыми моментами ваших циклов Lesson Study, публикуйте наблюдения за фокусными учениками, 
+        выкладывайте фотографии досок, рабочих листов и обсуждайте инсайты с коллегами.
+      </p>
+    </div>
+  </section>
+
+  <main class="forum-main-layout">
+    
+    <section class="create-post-card">
+      <h3>Поделиться моментом исследования</h3>
+      <form (submit)="onCreatePost($event)">
+        <div class="form-group">
+          <label for="postText">Что произошло на вашем исследовательском уроке?</label>
+          <textarea 
+            id="postText" 
+            placeholder="Опишите контекст: какой это был цикл, как отреагировал фокусный ученик А, или какие выводы сделала команда на рефлексии..."
+            [value]="newPostText()"
+            (input)="newPostText.set($any($event.target).value)"
+            required>
+          </textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="postImage">Ссылка на изображение момента (доска, рабочий лист, процесс планирования)</label>
+          <input 
+            type="text" 
+            id="postImage" 
+            placeholder="https://example.com/your-image.jpg (или оставьте пустым)"
+            [value]="newPostImage()"
+            (input)="newPostImage.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="ls-btn ls-btn-primary">Опубликовать в блог</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="posts-feed">
+      <h2>Лента исследований</h2>
+      
+      @if (posts().length === 0) {
+        <p class="empty-feed">Лента пока пуста. Будьте первым, кто поделится своим опытом!</p>
+      }
+
+      @for (post of posts(); track post.id) {
+        <article class="post-card">
+          <div class="post-header">
+            <div class="author-avatar">{{ post.avatar }}</div>
+            <div class="author-info">
+              <h4>{{ post.author }}</h4>
+              <time>{{ post.date }}</time>
+            </div>
+          </div>
+
+          <div class="post-body">
+            <p class="post-text">{{ post.text }}</p>
+            @if (post.image) {
+              <div class="post-image-wrapper">
+                <img [src]="post.image" alt="Момент исследования">
+              </div>
+            }
+          </div>
+
+          <div class="post-footer">
+            <button class="action-btn" (click)="toggleComments(post.id)">
+              💬 Комментарии ({{ post.comments.length }})
+            </button>
+          </div>
+
+          @if (expandedPostId() === post.id) {
+            <div class="comments-section animate-slide-down">
+              
+              <div class="comments-list">
+                @for (comment of post.comments; track comment.id) {
+                  <div class="comment-item">
+                    <span class="comment-author"><strong>{{ comment.author }}</strong>:</span>
+                    <span class="comment-text">{{ comment.text }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="add-comment-form">
+                <input 
+                  type="text" 
+                  placeholder="Напишите ваш комментарий или вопрос коллеге..." 
+                  #commentInput
+                  (keyup.enter)="addComment(post.id, commentInput.value); commentInput.value = ''"
+                />
+                <button class="ls-btn ls-btn-sm" (click)="addComment(post.id, commentInput.value); commentInput.value = ''">
+                  Отправить
+                </button>
+              </div>
+
+            </div>
+          }
+        </article>
+      }
+    </section>
+
+  </main>
+</div>

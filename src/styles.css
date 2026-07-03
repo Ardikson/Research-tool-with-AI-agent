@@ -1,1 +1,15 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. Сбрасываем дефолтные отступы браузера и включаем правильный расчет ширины */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  
+  /* ИСПРАВЛЕНИЕ: Прячем любой контент, который пытается вылезти за пределы экрана по горизонтали */
+  overflow-x: hidden; 
+}
+
+/* 2. Применяем правильный расчет размеров ко всем элементам на сайте */
+*, *:before, *:after {
+  box-sizing: inherit;
+}

@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
 import { AuthService } from '../auth'; 
 import { firstValueFrom } from 'rxjs';
-import { DomSanitizer } from '@angular/platform-browser';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 interface Message {
@@ -26,7 +25,6 @@ export class DocumentRedactorComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private http = inject(HttpClient); 
-  private sanitizer = inject(DomSanitizer);
 
   @ViewChild('subSheet') subSheet!: ElementRef<HTMLDivElement>;
   
@@ -35,39 +33,32 @@ export class DocumentRedactorComponent implements OnInit, OnDestroy {
   researchId = signal<string | null>(null);
   researchTitle = signal<string>('Загрузка документа...');
   
-  documentPages = signal<string[]>(['']); 
-  currentPageIndex = signal<number>(0); 
+  // ХРАНИМ СТРАНИЦЫ КАК МАССИВ СТРОК — БЕЗ СТРЕМНЫХ МАРКЕРОВ
+  pages = signal<string[]>(['<p><br></p>']);
+  currentPageIndex = signal<number>(0);
 
   isSaving = signal<boolean>(false);
   isAiThinking = signal<boolean>(false); 
   isDocumentLoading = false;
   private saveTimeout: any = null;
 
-  // Сигнал управления шторкой для мобильных устройств
   isMobileAiOpen = signal<boolean>(false);
-
   chatInput = signal<string>('');
   messages = signal<Message[]>([
-    { sender: 'ai', text: 'Привет! Я твой ИИ-ассистент. Напиши мне, что добавить в текст, или попроси проанализировать твое исследование.', timestamp: new Date() }
+    { sender: 'ai', text: 'Привет! Я твой ИИ-ассистент. Напиши мне, что добавить в текст.', timestamp: new Date() }
   ]);
 
-  // Генерируем общий контент для аналитики и экспорта
-  documentContent = computed(() => this.documentPages().join(''));
-
+  // Аналитика собирает текст со всех страниц массива
   stats = computed(() => {
-    const text = this.stripHtml(this.documentContent());
-    const charCount = text.length;
-    const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-    const pageCount = this.documentPages().length; 
-
-    return { pages: pageCount, words: wordCount, chars: charCount };
+    const fullText = this.pages().map(p => this.stripHtml(p)).join(' ');
+    const charCount = fullText.length;
+    const wordCount = fullText.trim() === '' ? 0 : fullText.trim().split(/\s+/).length;
+    return { words: wordCount, chars: charCount, totalPages: this.pages().length };
   });
 
-  // Инициализация компонента
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      alert('Документ не найден!');
       this.router.navigate(['/dashboard']);
       return;
     }
@@ -78,187 +69,144 @@ export class DocumentRedactorComponent implements OnInit, OnDestroy {
       if (user) {
         await this.loadDocument();
       } else {
-        this.isDocumentLoading = true; 
         this.router.navigate(['/login']);
       }
     });
   }
 
-  // Хук уничтожения компонента (Защита от сохранения мусора при выходе)
   ngOnDestroy() {
     this.isDocumentLoading = true; 
-    if (this.saveTimeout) {
-      clearTimeout(this.saveTimeout);
-      console.log('Фоновый таймер сохранения успешно уничтожен при выходе.');
-    }
+    if (this.saveTimeout) clearTimeout(this.saveTimeout);
   }
 
-  // Возврат на дашборд
   goBack() { 
     this.isDocumentLoading = true; 
-    if (this.saveTimeout) {
-      clearTimeout(this.saveTimeout);
-    }
+    if (this.saveTimeout) clearTimeout(this.saveTimeout);
     this.router.navigate(['/dashboard']); 
   }
 
-  toggleMobileAi() {
-    this.isMobileAiOpen.set(!this.isMobileAiOpen());
+  toggleMobileAi() { this.isMobileAiOpen.set(!this.isMobileAiOpen()); }
+
+  // НАВИГАЦИЯ ПО СТРАНИЦАМ
+  goToPage(index: number) {
+    if (index < 0 || index >= this.pages().length) return;
+    
+    // Сохраняем текущую страницу перед переходом
+    if (this.subSheet) {
+      const currentHtml = this.subSheet.nativeElement.innerHTML;
+      this.updatePageContentInMemory(this.currentPageIndex(), currentHtml);
+    }
+
+    this.currentPageIndex.set(index);
+    
+    // Рендерим контент новой страницы в редактор
+    if (this.subSheet) {
+      this.subSheet.nativeElement.innerHTML = this.pages()[index];
+    }
+  }
+
+  addPage() {
+    // Сохраняем контент текущей
+    if (this.subSheet) {
+      this.updatePageContentInMemory(this.currentPageIndex(), this.subSheet.nativeElement.innerHTML);
+    }
+
+    const updatedPages = [...this.pages(), '<p><br></p>'];
+    this.pages.set(updatedPages);
+    this.currentPageIndex.set(updatedPages.length - 1);
+
+    if (this.subSheet) {
+      this.subSheet.nativeElement.innerHTML = '<p><br></p>';
+    }
+    this.saveDocument();
+  }
+
+  removePage() {
+    if (this.pages().length <= 1) {
+      alert('Нельзя удалить единственную страницу!');
+      return;
+    }
+    if (!confirm('Вы уверены, что хотите удалить текущую страницу?')) return;
+
+    const indexToRemove = this.currentPageIndex();
+    const updatedPages = this.pages().filter((_, i) => i !== indexToRemove);
+    
+    this.pages.set(updatedPages);
+    const newIndex = Math.max(0, indexToRemove - 1);
+    this.currentPageIndex.set(newIndex);
+
+    if (this.subSheet) {
+      this.subSheet.nativeElement.innerHTML = this.pages()[newIndex];
+    }
+    this.saveDocument();
+  }
+
+  private updatePageContentInMemory(index: number, html: string) {
+    const currentPages = [...this.pages()];
+    currentPages[index] = html;
+    this.pages.set(currentPages);
   }
 
   async loadDocument() {
     try {
       this.isDocumentLoading = true; 
-
       const allResearches = await this.authService.getResearches();
       const currentDoc = allResearches.find(r => r.id === this.researchId());
 
       if (currentDoc) {
         this.researchTitle.set(currentDoc.title);
-        let rawContent = (currentDoc.rawContent || '').trim();
-
-        if (rawContent.includes('&lt;') || rawContent.includes('&gt;')) {
-          const decoderNode = document.createElement('textarea');
-          decoderNode.innerHTML = rawContent;
-          rawContent = decoderNode.value.trim();
-        }
-
-        let pages: string[] = [];
-
-        if (rawContent.includes('<html') || rawContent.includes('xmlns:w=')) {
-          const bodyMatch = rawContent.match(/<body>([\s\S]*?)<\/body>/i);
-          if (bodyMatch && bodyMatch[1].trim()) {
-            pages = [bodyMatch[1].trim()];
-          } else {
-            pages = ['<p>Начните вводить текст здесь...</p>'];
-          }
-        } else if (!rawContent || rawContent === '<p><br></p>' || rawContent === '<div><br></div>') {
-          pages = ['<p><br></p>'];
-        } else if (rawContent.includes('')) {
-          pages = rawContent.split('').map(p => p.trim()).filter(p => p.length > 0);
-          if (pages.length === 0) pages = ['<p><br></p>'];
-        } else {
-          pages = [rawContent];
-        }
         
-        this.documentPages.set(pages);
-        this.currentPageIndex.set(0);
-
-        if (this.subSheet) {
-          this.subSheet.nativeElement.innerHTML = pages[0] || '<p><br></p>';
+        // База данных теперь отдает либо массив страниц, либо старую строку (для совместимости)
+        let rawData = currentDoc.rawContent; 
+        
+        if (Array.isArray(rawData)) {
+          this.pages.set(rawData.length > 0 ? rawData : ['<p><br></p>']);
+        } else if (typeof rawData === 'string' && rawData.trim() !== '') {
+          // Если старый формат — оборачиваем всю строку в первую страницу
+          this.pages.set([rawData]);
+        } else {
+          this.pages.set(['<p><br></p>']);
         }
 
-        setTimeout(() => {
-          this.isDocumentLoading = false; 
-        }, 100);
+        this.currentPageIndex.set(0);
+        if (this.subSheet) {
+          this.subSheet.nativeElement.innerHTML = this.pages()[0];
+        }
 
-      } else {
-        alert('Документ не найден.');
-        this.isDocumentLoading = false;
-        this.router.navigate(['/dashboard']);
+        setTimeout(() => { this.isDocumentLoading = false; }, 300);
       }
     } catch (error) {
       this.isDocumentLoading = false;
-      console.error('Ошибка загрузки документа:', error);
+      console.error(error);
     }
   }
 
   onContentChange(event: Event) {
     if (this.isDocumentLoading) return;
-
     const html = (event.target as HTMLElement).innerHTML;
     
-    const pages = [...this.documentPages()];
-    pages[this.currentPageIndex()] = html;
-    this.documentPages.set(pages);
+    this.updatePageContentInMemory(this.currentPageIndex(), html);
     
-    if (this.saveTimeout) {
-      clearTimeout(this.saveTimeout);
-    }
-
-    this.saveTimeout = setTimeout(() => {
-      this.saveDocument();
-    }, 1500);
+    if (this.saveTimeout) clearTimeout(this.saveTimeout);
+    this.saveTimeout = setTimeout(() => this.saveDocument(), 1500);
   }
 
   async saveDocument() {
-    if (this.isDocumentLoading) return; 
-    if (!this.researchId() || this.researchId() === null) return;
-    if (!this.documentPages() || this.documentPages().length === 0) return;
-    
+    if (this.isDocumentLoading || !this.researchId()) return;
     this.isSaving.set(true);
     try {
-      const cleanPages = this.documentPages()
-        .map(p => p.trim())
-        .filter(p => p !== '' && p !== '<p><br></p>' && p !== '<div><br></div>');
-
-      const finalPages = cleanPages.length > 0 ? cleanPages : ['<p><br></p>'];
-      const fullContent = finalPages.join('');
-      
-      await this.authService.updateResearchContent(this.researchId()!, fullContent);
+      // Передаем в Firebase чистый массив страниц string[]
+      await this.authService.updateResearchContent(this.researchId()!, this.pages() as any);
       this.isSaving.set(false);
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
       this.isSaving.set(false);
     }
   }
 
   format(command: string, value: string = '') {
     document.execCommand(command, false, value);
-
     if (this.subSheet) {
-      const updatedHtml = this.subSheet.nativeElement.innerHTML;
-      const pages = [...this.documentPages()];
-      pages[this.currentPageIndex()] = updatedHtml;
-      this.documentPages.set(pages);
-      this.saveDocument();
-    }
-  }
-  
-  goToPage(index: number) {
-    if (index < 0 || index >= this.documentPages().length) return;
-
-    if (this.subSheet) {
-      const pages = [...this.documentPages()];
-      pages[this.currentPageIndex()] = this.subSheet.nativeElement.innerHTML;
-      this.documentPages.set(pages);
-    }
-
-    this.currentPageIndex.set(index);
-
-    if (this.subSheet) {
-      this.subSheet.nativeElement.innerHTML = this.documentPages()[index] || '<p><br></p>';
-    }
-  }
-
-  addPage() {
-    const pages = [...this.documentPages()];
-    const nextIndex = this.currentPageIndex() + 1;
-    
-    pages.splice(nextIndex, 0, '<p><br></p>');
-    this.documentPages.set(pages);
-    
-    this.goToPage(nextIndex);
-    this.saveDocument();
-  }
-
-  removePage() {
-    const pages = [...this.documentPages()];
-    if (pages.length <= 1) {
-      alert('Документ должен содержать хотя бы одну страницу!');
-      return;
-    }
-
-    if (confirm(`Вы уверены, что хотите полностью удалить страницу ${this.currentPageIndex() + 1}?`)) {
-      pages.splice(this.currentPageIndex(), 1);
-      this.documentPages.set(pages);
-
-      const newIndex = Math.max(0, this.currentPageIndex() - 1);
-      this.currentPageIndex.set(newIndex);
-
-      if (this.subSheet) {
-        this.subSheet.nativeElement.innerHTML = pages[newIndex] || '<p><br></p>';
-      }
+      this.updatePageContentInMemory(this.currentPageIndex(), this.subSheet.nativeElement.innerHTML);
       this.saveDocument();
     }
   }
@@ -273,146 +221,74 @@ export class DocumentRedactorComponent implements OnInit, OnDestroy {
 
     try {
       const payload = {
-        action: 'chat_and_edit',
-        researchId: this.researchId(),
-        documentTitle: this.researchTitle(),
-        currentContent: this.documentPages()[this.currentPageIndex()], 
-        userPrompt: prompt,
-        stats: this.stats()
-      };
+      action: 'chat_and_edit',
+      researchId: this.researchId(),
+      documentTitle: this.researchTitle(),
+  
+      // Отправляем ТОЛЬКО ту страницу, которую редактируем в данный момент:
+      currentContent: this.pages()[this.currentPageIndex()], 
+  
+      // Дополнительно подсказываем ИИ номер страницы на случай, если это важно для контекста
+      currentPageNumber: this.currentPageIndex() + 1,
+      totalDocPages: this.pages().length,
+  
+      userPrompt: prompt,
+      stats: this.stats()
+    };
 
-      const rawResponse = await firstValueFrom(
-        this.http.post<any>(this.aiWebhookUrl, payload)
-      );
-
-      let parsedData: { aiResponse: string, updatedHtmlContent?: string } | null = null;
+      const rawResponse = await firstValueFrom(this.http.post<any>(this.aiWebhookUrl, payload));
       const dataToProcess = rawResponse && rawResponse.output ? rawResponse.output : rawResponse;
-
-      if (typeof dataToProcess === 'string') {
-        try {
-          parsedData = JSON.parse(dataToProcess);
-        } catch (e) {
-          console.error('Ошибка парсинга ответа n8n:', e);
-        }
-      } else if (typeof dataToProcess === 'object' && dataToProcess !== null) {
-        parsedData = dataToProcess;
-      }
+      
+      let parsedData: any = typeof dataToProcess === 'string' ? JSON.parse(dataToProcess) : dataToProcess;
 
       if (parsedData && parsedData.updatedHtmlContent) {
-        const pages = [...this.documentPages()];
-        pages[this.currentPageIndex()] = parsedData.updatedHtmlContent;
-        this.documentPages.set(pages);
-        
+        // ИИ вернул новый контент. Запишем его в текущую страницу, либо распределим
+        this.updatePageContentInMemory(this.currentPageIndex(), parsedData.updatedHtmlContent);
         if (this.subSheet) {
           this.subSheet.nativeElement.innerHTML = parsedData.updatedHtmlContent;
         }
         this.saveDocument();
       }
 
-      const textForChat = parsedData?.aiResponse || 'Изменения внесены в документ.';
-      this.messages.set([
-        ...this.messages(), 
-        { sender: 'ai', text: textForChat, timestamp: new Date() }
-      ]);
-
+      const textForChat = parsedData?.aiResponse || 'Изменения внесены.';
+      this.messages.set([...this.messages(), { sender: 'ai', text: textForChat, timestamp: new Date() }]);
     } catch (error) {
-      console.error('Ошибка ИИ-модели или парсинга:', error);
-      this.messages.set([
-        ...this.messages(), 
-        { sender: 'ai', text: 'Произошла ошибка связи с ИИ-агентом. Проверь настройки webhook в n8n.', timestamp: new Date() }
-      ]);
+      this.messages.set([...this.messages(), { sender: 'ai', text: 'Ошибка сети.', timestamp: new Date() }]);
     } finally {
       this.isAiThinking.set(false);
     }
   }
 
   downloadFile(format: 'doc' | 'pdf') {
-    const currentHtml = this.documentContent();
+    // При скачивании просто склеиваем страницы воедино для экспорта
+    const fullHtml = this.pages().join('<br style="page-break-before: always;">');
     const titleText = this.researchTitle();
-    const encoder = new TextEncoder();
 
     if (format === 'doc') {
-      const finalHtml = currentHtml.includes('<html') 
-        ? currentHtml 
-        : this.wrapInWordTemplate(titleText, currentHtml);
-
-      const uint8Array = encoder.encode(finalHtml);
-      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); 
-      const blobContent = new Uint8Array(bom.length + uint8Array.length);
-      blobContent.set(bom, 0);
-      blobContent.set(uint8Array, bom.length);
-
-      const blob = new Blob([blobContent], { type: 'application/msword' });
+      const finalHtml = this.wrapInWordTemplate(titleText, fullHtml);
+      const blob = new Blob([new TextEncoder().encode(finalHtml)], { type: 'application/msword' });
       this.triggerDownload(blob, `${titleText}.doc`);
     } else {
-      let currentHtml = this.documentContent();
-
-      if (currentHtml.includes('&lt;') || currentHtml.includes('&gt;')) {
-        const tempTextArea = document.createElement('textarea');
-        tempTextArea.innerHTML = currentHtml;
-        currentHtml = tempTextArea.value;
-      }
-
-      const finalHtml = this.wrapInPdfTemplate(titleText, currentHtml);
+      const finalHtml = this.wrapInPdfTemplate(titleText, fullHtml);
       const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      window.open(URL.createObjectURL(blob), '_blank');
     }
   }
 
   private triggerDownload(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click();
+    document.body.removeChild(link); URL.revokeObjectURL(url);
   }
 
-  private wrapInWordTemplate(title: string, content: string): string {
-    return `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <style>
-          body { font-family: 'Arial', sans-serif; padding: 40px; line-height: 1.5; }
-          h1 { color: #ff4a3b; font-size: 24px; text-align: center; }
-        </style>
-      </head>
-      <body>
-        ${content}
-      </body>
-      </html>
-    `;
+  private wrapInWordTemplate(title: string, content: string) {
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body>${content}</body></html>`;
   }
 
-  private wrapInPdfTemplate(title: string, content: string): string {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${title}</title>
-        <style>
-          body { font-family: 'Arial', sans-serif; padding: 50px; color: #333; line-height: 1.6; background: white; }
-          table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-          th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
-          th { background-color: #f8fafc; }
-          @media print { body { padding: 0; } }
-        </style>
-      </head>
-      <body>
-        ${content}
-        <script>
-          window.onload = function() { 
-            setTimeout(() => { window.print(); }, 300); 
-          }
-        </script>
-      </body>
-      </html>
-    `;
+  private wrapInPdfTemplate(title: string, content: string) {
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body { font-family: Arial; padding: 50px; } @media print { body { padding: 0; } }</style></head><body>${content}<script>window.onload = function() { window.print(); }</script></body></html>`;
   }
 
   private stripHtml(html: string): string {
