@@ -29,22 +29,19 @@ body {
 
 .left-side-banner {
   position: absolute;
-  
-  /* Центрируем по вертикали */
   top: 50%;
-  transform: translateY(-50%);
+  /* Отодвигаем ближе к левому краю (15% от ширины экрана вместо 25%) */
+  left: 15vw; 
+  transform: translate(-50%, -50%);
   
-  /* Прижимаем к левому краю и даем отступ вправо */
-  left: 50%; 
-  right: auto; /* Сбрасываем правое позиционирование */
-  
-  /* Задаем ширину, чтобы она занимала красивую часть красного фона */
-  width: 42%;        
-  max-width: 600px;
-  
-  height: auto;      
+  /* Размеры: на 1440px баннер аккуратный, но не задевает меню */
+  width: 22vw;
+  max-width: 450px;
+  min-width: 180px;
+  height: auto;
   object-fit: contain;
-  pointer-events: none; 
+  pointer-events: none;
+  z-index: 2;
 }
 
 .right-half-black {
@@ -218,96 +215,300 @@ body {
 .scientist-portrait {
   position: absolute;
   top: 50%;
-  right: 5%;
-  transform: translateY(-50%);
+  /* Отодвигаем ближе к правому краю (85% от ширины экрана) */
+  left: 85vw; 
+  transform: translate(-50%, -50%);
   z-index: 5;
   
-  /* Добавляем flex, чтобы выстроить картинку и текст вертикально */
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  gap: 20px; /* Расстояние между картиной и цитатой */
+  align-items: center;
+  gap: 12px;
+  
+  width: 20vw;
+  max-width: 380px;
+  min-width: 170px;
 }
 
 .scientist-quote {
-  color: rgba(255, 255, 255, 0.85); /* Мягкий белый цвет */
+  color: rgba(255, 255, 255, 0.85);
   font-family: 'Georgia', 'Times New Roman', serif;
   font-style: italic;
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: clamp(10px, 0.85vw, 15px);
+  line-height: 1.45;
   text-align: center;
-  
-  /* УВЕЛИЧИВАЕМ ШИРИНУ: */
-  width: 140%; /* Позволяем тексту стать шире самого портрета */
-  max-width: 600px; /* Ставим новый, просторный лимит */
-  
+  width: 100%;
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .scientist-portrait img {
   display: block;
-  width: 180px; /* Задаем адекватный базовый размер для десктопа */
+  width: 100%;
+  max-width: 170px; /* Фиксируем портрет, чтобы цитата под ним смотрелась гармонично */
   height: auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s ease;
 }
 
 .scientist-portrait:hover img {
-  transform: scale(1.05);
+  transform: scale(1.03);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: sans-serif;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.main-container {
+  position: relative;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Левая и правая части фона (55% / 45%) */
+.left-half-red {
+  flex: 55;
+  background-color: #ff5741;
+  position: relative;
+}
+
+.right-half-black {
+  flex: 45;
+  background-color: #000000;
+}
+
+/* Слой для контента поверх фона */
+.content-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.brand-header, 
+.menu-container, 
+.scientist-portrait {
+  pointer-events: auto;
 }
 
 /* =======================================================
-   МЕДИА-ЗАПРОСЫ (АДАПТИВНОСТЬ ПОД МОБИЛЬНЫЕ И ПЛАНШЕТЫ)
+   2. ЛЕВЫЙ БАННЕР И ПОРТРЕТ УЧЕНОГО (ПОЗИЦИОНИРОВАНИЕ)
    ======================================================= */
-
-@media (max-width: 1024px) {
-  /* На планшетах прячем портрет или переносим его, чтобы не перекрывал меню */
-  .scientist-portrait {
-    display: none; 
-  }
-    .left-side-banner {
-    display: none;
-  }
-
+.left-side-banner {
+  position: absolute;
+  top: 50%;
+  left: 27.5vw; /* Центр красной половины (55vw / 2) */
+  transform: translate(-50%, -50%);
+  width: 32vw;
+  max-width: 500px;
+  min-width: 250px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
 }
 
-@media (max-width: 768px) {
-  /* Переключаем фон на вертикальный (сверху красный, снизу черный) */
-  .main-container {
-    flex-direction: column;
-  }
-  .left-half-red { flex: 50; }
-  .right-half-black { flex: 50; }
-
-  /* Перестраиваем заголовок */
-  .brand-header {
-    flex-direction: column;
-    align-items: center;
-    top: 3%;
-  }
-  .lesson-title, .portal-title {
-    width: 100%;
-    text-align: center;
-    padding: 0;
-  }
-  .portal-title {
-    color: #ffffff; /* На черном фоне снизу будет отлично читаться */
-  }
-
-  /* Смещаем меню чуть ниже, чтобы освободить место для вертикального заголовка */
-  .menu-container {
-    top: 40%;
-    height: 480px;
-    padding: 20px;
-  }
-  .menu-title {
-    font-size: 28px;
-    margin-bottom: 10px;
-  }
+.scientist-portrait {
+  position: absolute;
+  top: 50%;
+  left: 77.5vw; /* Центр черной половины (55vw + 45vw / 2) */
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 25vw;
+  max-width: 400px;
+  min-width: 220px;
 }
 
-/* --- СТИЛИ ДЛЯ ФОРМЫ ВВОДА --- */
+.scientist-portrait img {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.scientist-portrait:hover img {
+  transform: scale(1.04);
+}
+
+.scientist-quote {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(12px, 0.95vw, 16px); /* Плавно адаптирует размер текста */
+  line-height: 1.5;
+  text-align: center;
+  width: 100%;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* =======================================================
+   3. ЗАГОЛОВОК И МЕНЮ
+   ======================================================= */
+.brand-header {
+  position: absolute;
+  top: 5%;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.lesson-title, .portal-title {
+  font-family: 'Arial Black', sans-serif;
+  font-size: clamp(2rem, 5vw, 5rem);
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 3px;
+}
+
+.lesson-title {
+  width: 55%;
+  text-align: right;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+.portal-title {
+  width: 45%;
+  text-align: left;
+  padding-left: 20px;
+  box-sizing: border-box;
+}
+
+.menu-container {
+  position: absolute;
+  top: 53%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  height: 550px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  padding: 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-title {
+  font-family: 'Arial Black', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #000000;
+  margin: 0 0 20px 0;
+  letter-spacing: 2px;
+}
+
+/* Плитки меню */
+.tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 15px;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.tile {
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tile-text {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  transform: translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tile:hover { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
+.tile:hover .tile-overlay { opacity: 1; }
+.tile:hover .tile-text { transform: translateY(0); }
+
+/* =======================================================
+   4. КНОПКИ И ФОРМЫ АВТОРИЗАЦИИ
+   ======================================================= */
+.auth-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 25px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.btn-login {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: none;
+}
+.btn-login:hover {
+  background-color: #333333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-register {
+  background-color: transparent;
+  color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+}
+.btn-register:hover {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
 .login-form {
   width: 100%;
   display: flex;
@@ -337,13 +538,14 @@ body {
   border: 2px solid #e0e0e0;
   border-radius: 6px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
   box-sizing: border-box;
   width: 100%;
 }
 
 .input-field input:focus {
   border-color: #1a1a1a;
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
 }
 
 .form-actions {
@@ -358,7 +560,17 @@ body {
   text-align: center;
 }
 
-/* Ключевые кадры для плавного появления меню */
+.success-message-text {
+  color: #2ec4b6;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+/* =======================================================
+   5. АНИМАЦИИ
+   ======================================================= */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -370,7 +582,6 @@ body {
   }
 }
 
-/* Ключевые кадры для выплывания формы */
 @keyframes slideInUp {
   from {
     opacity: 0;
@@ -382,7 +593,6 @@ body {
   }
 }
 
-/* Применяем анимацию к контейнеру меню */
 .fade-in-content {
   animation: fadeIn 0.35s ease-out forwards;
   display: flex;
@@ -392,7 +602,6 @@ body {
   height: 100%;
 }
 
-/* Применяем анимацию к контейнеру формы */
 .slide-in-content {
   animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
@@ -402,108 +611,208 @@ body {
   height: 100%;
 }
 
-/* Сделаем так, чтобы сама карточка меню тоже мягко подстраивалась под высоту */
-.menu-container {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Эффект наведения на поля ввода, чтобы они подсвечивались стильной темной рамкой */
-.input-field input {
-  transition: all 0.2s ease;
-}
-.input-field input:focus {
-  border-color: #1a1a1a;
-  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
-}
-
-.success-message-text {
-  color: #2ec4b6;
-  font-size: 14px;
-  font-weight: bold;
-  margin: 0 0 15px 0;
-  text-align: center;
-}
-
-@media (min-width: 1440px) {
-  .left-side-banner {
-    /* Сбрасываем центрирование по top, если нужно выровнять по-другому */
-    top: 50%;
-    transform: translateY(-50%);
-
-    /* Идеальный отступ слева для экранов 1440px */
-    left: -3%; 
-    right: auto;
-
-    /* Делаем картинку заметно крупнее, так как места на экране много */
-    width: 65%;        
-    max-width: 600px; /* Увеличили лимит, чтобы на 1440px+ она раскрылась */
-  }
-
-  .scientist-portrait img {
-    width: 230px; /* Сделали крупнее и заметнее */
-    border-width: 0px; /* Чуть утолщаем золотую рамку для солидности */
-  }
-
-}
-
 /* =======================================================
-   ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ УЛЬТРАШИРОКИХ ЭКРАНОВ (ОТ 2560px)
+   6. ОЧИЩЕННЫЕ И ПОСЛЕДОВАТЕЛЬНЫЕ МЕДИА-ЗАПРОСЫ
    ======================================================= */
+
+/* Для больших экранов (Full HD и выше) */
+@media (min-width: 1600px) {
+  .scientist-portrait img {
+    max-width: 240px;
+  }
+}
+
+/* Для 2K / 4K ультрашироких экранов */
 @media (min-width: 2560px) {
+  .scientist-portrait img {
+    max-width: 300px;
+  }
+  
+  .scientist-quote {
+    font-size: 20px;
+  }
+}
+
+/* Средняя адаптивность (планшеты и ноутбуки с узким экраном) */
+@media (max-width: 1200px) {
+  /* Прячем декоративные боковые элементы, чтобы они не перекрывали меню */
+  .scientist-portrait,
   .left-side-banner {
-    /* Оставляем идеальное вертикальное центрирование */
-    top: 50%;
-    transform: translateY(-50%);
-
-    /* Немного смещаем к центру красной половины для баланса */
-    left: 6%; 
-    right: auto;
-
-    /* Даем картинке свободу расти дальше */
-    width: 65%;        
-    max-width: 800px; /* Существенно подняли лимит для экранов высокой четкости */
+    display: none;
   }
-
-  .scientist-portrait img {
-    width: 300px; /* На ультрашироком мониторе картина будет выглядеть как в настоящей галерее */
-    border-width: 0px; /* Пропорционально увеличиваем рамку */
-  }
-  
-  /* Слегка отодвигаем от самого края, чтобы он не прилипал к границе экрана */
-  .scientist-portrait {
-    right: 13%;
-  }
-
 }
 
-
-@media (min-width: 1440px) {
-  /* ... твои старые стили для картинок ... */
-
-  .scientist-portrait img {
-    width: 200px;
-    border-width: 5px;
+/* Мобильная адаптивность */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
   }
   
-  /* Увеличиваем цитату на 1440px */
-  .scientist-quote {
-    font-size: 16px;
+  .left-half-red { 
+    flex: 40; /* Красный верх */
+  }
+  .right-half-black { 
+    flex: 60; /* Черный низ */
+  }
+
+  /* Исправление заголовка на мобилке */
+  .brand-header {
+    flex-direction: column;
+    align-items: center;
+    top: 4%;
+  }
+
+  .lesson-title, .portal-title {
+    width: 100%;
+    text-align: center;
+    padding: 0;
+    font-size: clamp(2rem, 8vw, 3.5rem);
+  }
+
+  .portal-title {
+    color: #ffffff;
+    margin-top: -5px;
+  }
+
+  /* Исправление карточки меню (возвращаем высоту для плиток) */
+  .menu-container {
+    top: 58%;
+    width: 88%;
     max-width: 400px;
+    height: auto;
+    min-height: 420px; /* Чтобы плитки точно помещались */
+    padding: 20px;
+  }
+
+  .menu-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .tiles-grid {
+    gap: 10px;
+    min-height: 220px;
+  }
+
+  .auth-buttons {
+    margin-top: 15px;
   }
 }
 
-@media (min-width: 2560px) {
-  /* ... твои старые стили для картинок ... */
+@media (min-width: 2000px) {
+  /* 1. Увеличиваем центральную карточку меню */
+  .menu-container {
+    max-width: 620px;   /* Было 500px */
+    height: 680px;      /* Было 550px */
+    padding: 40px;
+    border-radius: 12px;
+  }
+
+  .menu-title {
+    font-size: 44px;    /* Было 36px */
+    margin-bottom: 25px;
+  }
+
+  .tile-text {
+    font-size: 20px;
+  }
+
+  .btn {
+    padding: 15px 0;
+    font-size: 18px;
+  }
+
+  /* 2. Увеличиваем баннер слева */
+  .left-side-banner {
+    left: 20vw;         /* Чуть ближе к центру, как при зуме */
+    width: 30vw;
+    max-width: 620px;   /* Было 450px */
+  }
+
+  /* 3. Увеличиваем портрет с цитатой справа */
+  .scientist-portrait {
+    left: 80vw;
+    width: 24vw;
+    max-width: 480px;   /* Было 380px */
+    gap: 18px;
+  }
 
   .scientist-portrait img {
-    width: 250px;
-    border-width: 7px;
+    max-width: 250px;   /* Было 170px — золотая рамка становится солидной */
+  }
+
+  .scientist-quote {
+    font-size: 18px;    /* Было ~14px — текст легко читается */
+    line-height: 1.5;
+  }
+
+  /* 4. Масштабируем главный заголовок */
+  .brand-header {
+    top: 6%;
+  }
+
+  .lesson-title, .portal-title {
+    font-size: 5.5rem;  /* Заголовок станет сочным и крупным */
+  }
+}
+
+@media (max-width: 1366px) {
+  .scientist-portrait,
+  .left-side-banner {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .menu-container {
+    top: 60%;
+    padding: 15px;
+    min-height: 380px;
   }
   
-  /* Крупный читаемый текст на 2K/4K экранах */
-  .scientist-quote {
-    font-size: 24px;
-    max-width: 550px;
-    gap: 35px;
+  .btn {
+    padding: 10px 0;
+    font-size: 13px;
+  }
+}
+@media (max-width: 1440px) {
+.left-side-banner {
+  position: absolute;
+  top: 50%;
+  left: 17vw;            /* Сдвигаем чуть левее от центра красного фона */
+  transform: translate(-50%, -50%);
+  width: 25vw;
+  max-width: 480px;      /* Подняли верхний лимит */
+  min-width: 280px;      /* Увеличили минимальный размер, чтобы не мелел */
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
+}
+  
+  .scientist-portrait {
+    left: 86vw;
+    width: 18vw;
+  }
+
+  .scientist-portrait img {
+    max-width: 140px;
+  }
+}
+
+@media (min-width: 1201px) and (max-width: 1536px) {
+  .left-side-banner {
+    left: 16vw;          /* Оптимальное смещение к левому краю */
+    width: 24vw;
+    min-width: 320px;    /* Делаем девушек крупнее и сочнее */
+  }
+
+  .scientist-portrait {
+    left: 84vw;          /* Зеркально отодвигаем портрет */
+    width: 20vw;
+  }
+  
+  .scientist-portrait img {
+    max-width: 160px;
   }
 }
