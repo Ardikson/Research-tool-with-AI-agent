@@ -28,7 +28,7 @@ export class DocumentRedactorComponent implements OnInit, OnDestroy {
 
   @ViewChild('subSheet') subSheet!: ElementRef<HTMLDivElement>;
   
-  private aiWebhookUrl = 'https://lessonstudy11.app.n8n.cloud/webhook/redactor-ai';
+  private aiWebhookUrl = 'https://lessonstudy.asia/webhook/redactor-ai';
 
   researchId = signal<string | null>(null);
   researchTitle = signal<string>('Загрузка документа...');
