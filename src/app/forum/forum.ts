@@ -1,115 +1,159 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface Comment {
-  id: number;
-  author: string;
-  text: string;
-}
-
-interface Post {
-  id: number;
-  author: string;
-  avatar: string;
-  date: string;
-  text: string;
-  image?: string;
-  comments: Comment[];
-}
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ForumPost, Comment, UserProfile } from './forum.model';
+import { ForumService } from './forum.service';
 
 @Component({
   selector: 'app-forum',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './forum.html',
-  styleUrl: './forum.css'
+  styleUrls: ['./forum.css']
 })
-export class ForumComponent {
+export class ForumComponent implements OnInit {
+  // Текущий пользователь
+  currentUser = signal<UserProfile | null>({
+    uid: 'user123',
+    displayName: 'Алия Каримова',
+    role: 'Студент-Магистрант',
+    isProfileComplete: true
+  });
 
-  // Реактивные сигналы для полей создания поста
-  newPostText = signal('');
-  newPostImage = signal('');
+  // Посты и состояния
+  posts = signal<ForumPost[]>([]);
+  newPostContent = signal<string>('');
+  
+  // Файл и статус загрузки
+  selectedFile: File | null = null;
+  isUploading = false;
+  
+  // Активные комментарии (ID поста -> текст комментария)
+  commentInputs = signal<{ [postId: string]: string }>({});
+  expandedComments = signal<{ [postId: string]: boolean }>({});
 
-  // Переменная для отслеживания развернутых комментариев (хранит ID открытого поста)
-  expandedPostId = signal<number | null>(null);
+  constructor(
+    private forumService: ForumService,
+    private router: Router
+  ) {}
 
-  // Стартовая лента блогов
-  posts = signal<Post[]>([
-    {
-      id: 1,
-      author: 'Алия Каримова (Студент-Магистрант)',
-      avatar: '👩‍🎓',
-      date: 'Сегодня, 10:15',
-      text: 'Провели сегодня 1-й исследовательский урок в рамках нашего цикла Lesson Study во 2-м классе лицея №134. Наш фокусный ученик С (испытывающий трудности в концентрации) на удивление активно включился в работу в паре! Использование визуальных карточек на этапе рефлексии дало отличный результат. Делюсь фотографией нашего рабочего флипчарта после обсуждения группой.',
-      image: 'https://images.unsplash.com/photo-1544535830-9dff9e0d4bee?auto=format&fit=crop&w=800&q=80',
-      comments: [
-        { id: 1, author: 'Нурлан С.', text: 'Отличный результат! А как долго длилась работа в парах?' },
-        { id: 2, author: 'Алия Каримова', text: 'Спасибо! Выделили ровно 7 минут, дольше они бы не удержали фокус.' }
-      ]
-    },
-    {
-      id: 2,
-      author: 'Данияр Жумабеков (Преподаватель / Методист)',
-      avatar: '👨‍🏫',
-      date: 'Вчера, 16:40',
-      text: 'Коллеги, важный инсайт по итогам вчерашней сессии планирования. Когда вы определяете фокусные группы (А, В, С), обязательно берите во внимание не только академическую успеваемость, но и социальную активность ребенка. Иногда тихоня со средними оценками раскрывается как лидер, если убрать из группы доминирующего лидера.',
-      comments: [
-        { id: 1, author: 'Мариям И.', text: 'Полностью согласна, на последнем цикле столкнулись именно с этим.' }
-      ]
-    }
-  ]);
+  ngOnInit(): void {
+    this.loadPosts();
+  }
 
-  // Развернуть/свернуть комментарии к посту
-  toggleComments(postId: number) {
-    if (this.expandedPostId() === postId) {
-      this.expandedPostId.set(null);
-    } else {
-      this.expandedPostId.set(postId);
+  loadPosts(): void {
+    this.forumService.getPosts().subscribe(data => {
+      this.posts.set(data);
+    });
+  }
+
+  // Навигация на главную
+  goBackToMainMenu(): void {
+    this.router.navigate(['/login']);
+  }
+
+  // Выбор файла через input
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
     }
   }
 
-  // Создать новый пост в блоге
-  onCreatePost(event: Event) {
-    event.preventDefault();
-    if (!this.newPostText().trim()) return;
+  // Создание поста с загрузкой картинки на ваш сервер
+  async createPost(): Promise<void> {
+    const user = this.currentUser();
+    
+    // Проверка доступа
+    if (!user || !user.isProfileComplete) {
+      alert('Чтобы публиковать материалы, необходимо заполнить профиль!');
+      return;
+    }
 
-    const newPost: Post = {
-      id: Date.now(),
-      author: 'Вы (Учитель-Исследователь)',
-      avatar: '👤',
-      date: 'Только что',
-      text: this.newPostText(),
-      image: this.newPostImage().trim() ? this.newPostImage().trim() : undefined,
-      comments: []
+    if (!this.newPostContent().trim()) return;
+
+    this.isUploading = true;
+    let uploadedImageUrl = '';
+
+    try {
+      // 1. Загружаем файл на ваш Node.js сервер, если файл выбран
+      if (this.selectedFile) {
+        const formData = new FormData();
+        formData.append('file', this.selectedFile);
+
+        const response = await fetch('https://lessonstudy.asia/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+          uploadedImageUrl = data.url;
+        }
+      }
+
+      // 2. Отправляем пост в Firestore
+      const newPost: ForumPost = {
+        authorName: user.displayName,
+        authorRole: user.role,
+        content: this.newPostContent(),
+        imageUrl: uploadedImageUrl || undefined,
+        createdAt: new Date(),
+        commentsCount: 0,
+        comments: []
+      };
+
+      await this.forumService.addPost(newPost);
+
+      // 3. Очищаем форму
+      this.newPostContent.set('');
+      this.selectedFile = null;
+      this.loadPosts();
+
+    } catch (error) {
+      console.error('Ошибка при создании поста:', error);
+      alert('Не удалось загрузить изображение или опубликовать пост.');
+    } finally {
+      this.isUploading = false;
+    }
+  }
+
+  // Переключение комментариев
+  toggleComments(postId: string): void {
+    this.expandedComments.update(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  }
+
+  // Добавление комментария
+  addComment(postId: string): void {
+    const user = this.currentUser();
+    const text = this.commentInputs()[postId];
+
+    if (!user || !user.isProfileComplete) {
+      alert('Комментирование доступно только пользователям с заполненным профилем.');
+      return;
+    }
+
+    if (!text || !text.trim()) return;
+
+    const comment: Comment = {
+      id: Date.now().toString(),
+      authorName: user.displayName,
+      authorRole: user.role,
+      text: text,
+      createdAt: new Date()
     };
 
-    // Обновляем массив постов с добавлением нового в самое начало ленты
-    this.posts.set([newPost, ...this.posts()]);
-
-    // Очищаем форму
-    this.newPostText.set('');
-    this.newPostImage.set('');
+    this.forumService.addComment(postId, comment).then(() => {
+      this.commentInputs.update(prev => ({ ...prev, [postId]: '' }));
+      this.loadPosts();
+    });
   }
 
-  // Добавить новый комментарий к посту
-  addComment(postId: number, commentText: string) {
-    if (!commentText.trim()) return;
-
-    const updatedPosts = this.posts().map(post => {
-      if (post.id === postId) {
-        const newComment: Comment = {
-          id: Date.now(),
-          author: 'Вы',
-          text: commentText
-        };
-        return {
-          ...post,
-          comments: [...post.comments, newComment]
-        };
-      }
-      return post;
-    });
-
-    this.posts.set(updatedPosts);
+  updateCommentInput(postId: string, value: string): void {
+    this.commentInputs.update(prev => ({ ...prev, [postId]: value }));
   }
 }

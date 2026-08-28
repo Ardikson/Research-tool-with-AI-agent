@@ -1,110 +1,132 @@
-<div class="forum-container">
+<!-- ИССЛЕДОВАТЕЛЬСКИЙ ФОРУМ -->
+<section class="forum-hero" style="position: relative; background: #0f172a; color: #fff; padding: 60px 20px 40px; text-align: center;">
   
-  <section class="forum-hero">
-    <div class="hero-content">
-      <span class="hero-badge">Сообщество Практиков</span>
-      <h1 class="hero-title">Исследовательский Форум</h1>
-      <p class="hero-subtitle">
-        Делитесь живыми моментами ваших циклов Lesson Study, публикуйте наблюдения за фокусными учениками, 
-        выкладывайте фотографии досок, рабочих листов и обсуждайте инсайты с коллегами.
-      </p>
-    </div>
-  </section>
+  <!-- Кнопка "Главная" поверх баннера -->
+  <button 
+    (click)="goBackToMainMenu()" 
+    style="position: absolute; top: 16px; left: 16px; z-index: 10; display: inline-flex; align-items: center; gap: 8px; background-color: #ffffff; color: #334155; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 0px; font-size: 14px; font-weight: 600; cursor: pointer;"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 18px; height: 18px;">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+    </svg>
+    <span>Главная</span>
+  </button>
 
-  <main class="forum-main-layout">
+  <span style="background: #1e293b; color: #38bdf8; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;">Сообщество Практиков</span>
+  <h1 style="font-size: 36px; font-weight: 800; margin: 16px 0 12px;">Исследовательский Форум</h1>
+  <p style="max-width: 700px; margin: 0 auto; color: #94a3b8; font-size: 15px; line-height: 1.6;">
+    Делитесь живыми моментами ваших циклов Lesson Study, публикуйте наблюдения за фокусными учениками, выкладывайте фотографии досок, рабочих листов и обсуждайте инсайты с коллегами.
+  </p>
+</section>
+
+<div class="forum-container" style="max-width: 800px; margin: -30px auto 60px; padding: 0 20px; position: relative; z-index: 5;">
+  
+  <!-- ФОРМА СОЗДАНИЯ ПОСТА -->
+  <div class="create-post-card" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 32px; border: 1px solid #e2e8f0;">
+    <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #0f172a;">Поделиться моментом исследования</h3>
     
-    <section class="create-post-card">
-      <h3>Поделиться моментом исследования</h3>
-      <form (submit)="onCreatePost($event)">
-        <div class="form-group">
-          <label for="postText">Что произошло на вашем исследовательском уроке?</label>
-          <textarea 
-            id="postText" 
-            placeholder="Опишите контекст: какой это был цикл, как отреагировал фокусный ученик А, или какие выводы сделала команда на рефлексии..."
-            [value]="newPostText()"
-            (input)="newPostText.set($any($event.target).value)"
-            required>
-          </textarea>
-        </div>
-        
-        <div class="form-group">
-          <label for="postImage">Ссылка на изображение момента (доска, рабочий лист, процесс планирования)</label>
-          <input 
-            type="text" 
-            id="postImage" 
-            placeholder="https://example.com/your-image.jpg (или оставьте пустым)"
-            [value]="newPostImage()"
-            (input)="newPostImage.set($any($event.target).value)"
-          />
-        </div>
+    <!-- Заглушка если профиль не заполнен -->
+    <div *ngIf="!currentUser()?.isProfileComplete" style="background: #fffbe3; border: 1px solid #fef08a; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; color: #854d0e; font-size: 14px;">
+      🔒 <strong>Просмотр доступен всем.</strong> Чтобы публиковать посты и оставлять комментарии, пожалуйста, закройте настройки и заполните профиль педагога.
+    </div>
 
-        <div class="form-actions">
-          <button type="submit" class="ls-btn ls-btn-primary">Опубликовать в блог</button>
-        </div>
-      </form>
-    </section>
+    <textarea 
+      [ngModel]="newPostContent()" 
+      (ngModelChange)="newPostContent.set($event)"
+      [disabled]="!currentUser()?.isProfileComplete"
+      placeholder="Опишите контекст: какой это был цикл, как отреагировал фокусный ученик А, или какие выводы сделала команда на рефлексии..."
+      style="width: 100%; height: 100px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"
+    ></textarea>
 
-    <section class="posts-feed">
-      <h2>Лента исследований</h2>
+    <div style="margin-top: 12px;">
+      <label style="display: block; font-size: 13px; color: #64748b; margin-bottom: 6px; font-weight: 600;">
+        Прикрепить фото момента исследования:
+      </label>
+      <input 
+        type="file" 
+        accept="image/*"
+        (change)="onFileSelected($event)"
+        [disabled]="!currentUser()?.isProfileComplete || isUploading"
+        style="font-size: 14px;"
+      />
+    </div>
+
+    <div style="margin-top: 16px; text-align: right;">
+      <button 
+        (click)="createPost()" 
+        [disabled]="!currentUser()?.isProfileComplete || isUploading"
+        [style.opacity]="currentUser()?.isProfileComplete ? '1' : '0.6'"
+        style="background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+      >
+        {{ isUploading ? 'Загрузка...' : 'Опубликовать в блог' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ЛЕНТА ИССЛЕДОВАНИЙ -->
+  <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 20px;">Лента исследований</h2>
+
+  <div *ngFor="let post of posts()" class="post-card" style="background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+    
+    <!-- Автор -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+      <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+        🎓
+      </div>
+      <div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 15px;">{{ post.authorName }} <span style="color: #64748b; font-weight: 500;">({{ post.authorRole }})</span></div>
+        <div style="font-size: 12px; color: #94a3b8;">Недавно</div>
+      </div>
+    </div>
+
+    <!-- Текст поста -->
+    <p style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 16px; white-space: pre-line;">{{ post.content }}</p>
+
+    <!-- Изображение поста -->
+    <div *ngIf="post.imageUrl" style="margin-bottom: 16px; border-radius: 8px; overflow: hidden; background: #f1f5f9;">
+      <img [src]="post.imageUrl" style="width: 100%; max-height: 400px; object-fit: cover;" />
+    </div>
+
+    <!-- Кнопка комментариев -->
+    <div style="border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; align-items: center; justify-content: space-between;">
+      <button 
+        (click)="toggleComments(post.id!)" 
+        style="background: transparent; border: none; color: #64748b; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+      >
+        💬 Комментарии ({{ post.comments?.length || 0 }})
+      </button>
+    </div>
+
+    <!-- БЛОК КОММЕНТАРИЕВ -->
+    <div *ngIf="expandedComments()[post.id!]" style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed #e2e8f0;">
       
-      @if (posts().length === 0) {
-        <p class="empty-feed">Лента пока пуста. Будьте первым, кто поделится своим опытом!</p>
-      }
+      <!-- Список комментариев -->
+      <div *ngFor="let comment of post.comments" style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+        <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{{ comment.authorName }} <span style="font-weight: 400; color: #64748b;">({{ comment.authorRole }})</span></div>
+        <div style="font-size: 14px; color: #334155; margin-top: 4px;">{{ comment.text }}</div>
+      </div>
 
-      @for (post of posts(); track post.id) {
-        <article class="post-card">
-          <div class="post-header">
-            <div class="author-avatar">{{ post.avatar }}</div>
-            <div class="author-info">
-              <h4>{{ post.author }}</h4>
-              <time>{{ post.date }}</time>
-            </div>
-          </div>
+      <!-- Ввод нового комментария -->
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <input 
+          type="text" 
+          [ngModel]="commentInputs()[post.id!]" 
+          (ngModelChange)="updateCommentInput(post.id!, $event)"
+          [disabled]="!currentUser()?.isProfileComplete"
+          placeholder="Оставьте ваш комментарий или вопрос..." 
+          style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;"
+        />
+        <button 
+          (click)="addComment(post.id!)" 
+          [disabled]="!currentUser()?.isProfileComplete"
+          style="background: #0f172a; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;"
+        >
+          Отправить
+        </button>
+      </div>
 
-          <div class="post-body">
-            <p class="post-text">{{ post.text }}</p>
-            @if (post.image) {
-              <div class="post-image-wrapper">
-                <img [src]="post.image" alt="Момент исследования">
-              </div>
-            }
-          </div>
+    </div>
 
-          <div class="post-footer">
-            <button class="action-btn" (click)="toggleComments(post.id)">
-              💬 Комментарии ({{ post.comments.length }})
-            </button>
-          </div>
+  </div>
 
-          @if (expandedPostId() === post.id) {
-            <div class="comments-section animate-slide-down">
-              
-              <div class="comments-list">
-                @for (comment of post.comments; track comment.id) {
-                  <div class="comment-item">
-                    <span class="comment-author"><strong>{{ comment.author }}</strong>:</span>
-                    <span class="comment-text">{{ comment.text }}</span>
-                  </div>
-                }
-              </div>
-
-              <div class="add-comment-form">
-                <input 
-                  type="text" 
-                  placeholder="Напишите ваш комментарий или вопрос коллеге..." 
-                  #commentInput
-                  (keyup.enter)="addComment(post.id, commentInput.value); commentInput.value = ''"
-                />
-                <button class="ls-btn ls-btn-sm" (click)="addComment(post.id, commentInput.value); commentInput.value = ''">
-                  Отправить
-                </button>
-              </div>
-
-            </div>
-          }
-        </article>
-      }
-    </section>
-
-  </main>
 </div>
